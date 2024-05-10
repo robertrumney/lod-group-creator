@@ -5,15 +5,15 @@ public class LODGroupPrefabCreator : EditorWindow
 {
     private GameObject[] selectedMeshes;
     private string prefabName = "NewLODPrefab";
-    private float[] lodThresholds = new float[] { 0.6f, 0.3f, 0.1f };
-    
+    private readonly float[] lodThresholds = new float[] { 0.6f, 0.3f, 0.1f };
+
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
     private static void ShowWindow()
     {
         GetWindow<LODGroupPrefabCreator>("LOD Group Prefab Creator");
     }
-    
+
     // Draw the window's content
     private void OnGUI()
     {
@@ -24,7 +24,7 @@ public class LODGroupPrefabCreator : EditorWindow
         // Make array for selected meshes
         EditorGUILayout.LabelField("Select Meshes from Project View:");
         selectedMeshes = Selection.gameObjects;
-        
+
         if (selectedMeshes != null && selectedMeshes.Length > 0)
         {
             for (int i = 0; i < selectedMeshes.Length; i++)
@@ -43,13 +43,13 @@ public class LODGroupPrefabCreator : EditorWindow
         {
             lodThresholds[i] = EditorGUILayout.Slider($"LOD {i + 1} Threshold", lodThresholds[i], 0f, 1f);
         }
-        
+
         if (GUILayout.Button("Create LOD Prefab"))
         {
             CreateLODPrefab();
         }
     }
-    
+
     // Method to create LOD Prefab
     private void CreateLODPrefab()
     {
@@ -64,7 +64,7 @@ public class LODGroupPrefabCreator : EditorWindow
         LODGroup lodGroup = lodRoot.AddComponent<LODGroup>();
 
         LOD[] lods = new LOD[selectedMeshes.Length];
-        
+
         for (int i = 0; i < selectedMeshes.Length; i++)
         {
             GameObject lodObj = Instantiate(selectedMeshes[i]);
@@ -82,7 +82,7 @@ public class LODGroupPrefabCreator : EditorWindow
         string path = $"Assets/{prefabName}.prefab";
         PrefabUtility.SaveAsPrefabAsset(lodRoot, path);
         DestroyImmediate(lodRoot);
-        
+
         Debug.Log($"LOD prefab created and saved at {path}");
     }
 }
