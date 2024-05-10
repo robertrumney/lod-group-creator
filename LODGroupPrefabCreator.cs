@@ -5,7 +5,7 @@ public class LODGroupPrefabCreator : EditorWindow
 {
     private GameObject[] selectedMeshes;
     private string prefabName = "NewLODPrefab";
-    private readonly float[] lodThresholds = new float[] { 0.6f, 0.3f, 0.1f };
+    private float[] lodThresholds;
 
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
@@ -21,9 +21,18 @@ public class LODGroupPrefabCreator : EditorWindow
 
         prefabName = EditorGUILayout.TextField("Prefab Name", prefabName);
 
-        // Make array for selected meshes
+        // Display selected meshes
         EditorGUILayout.LabelField("Select Meshes from Project View:");
-        selectedMeshes = Selection.gameObjects;
+        GameObject[] newSelectedMeshes = Selection.gameObjects;
+        if (newSelectedMeshes != selectedMeshes)
+        {
+            selectedMeshes = newSelectedMeshes;
+            lodThresholds = new float[selectedMeshes.Length];  // Initialize thresholds array based on selection count
+            for (int i = 0; i < lodThresholds.Length; i++)
+            {
+                lodThresholds[i] = 1f - (i / (float)lodThresholds.Length);  // Default decreasing thresholds
+            }
+        }
 
         if (selectedMeshes != null && selectedMeshes.Length > 0)
         {
@@ -67,9 +76,8 @@ public class LODGroupPrefabCreator : EditorWindow
 
         for (int i = 0; i < selectedMeshes.Length; i++)
         {
-            GameObject lodObj = Instantiate(selectedMeshes[i]);
+            GameObject lodObj = Instantiate(selectedMeshes[i], lodRoot.transform);
             lodObj.name = $"LOD {i + 1}";
-            lodObj.transform.SetParent(lodRoot.transform);
 
             Renderer[] renderers = lodObj.GetComponentsInChildren<Renderer>();
             lods[i] = new LOD(lodThresholds[i], renderers);
