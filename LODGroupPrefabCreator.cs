@@ -8,6 +8,7 @@ public class LODGroupPrefabCreator : EditorWindow
     private float[] lodThresholds;
     private string saveFolderPath = "Assets";
     private bool addColliderToLOD0 = false;
+    private bool placeColliderOnRoot = false;
 
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
@@ -57,6 +58,10 @@ public class LODGroupPrefabCreator : EditorWindow
 
         EditorGUILayout.Space();
         addColliderToLOD0 = EditorGUILayout.Toggle("Add Collider to LOD0", addColliderToLOD0);
+        if (addColliderToLOD0)
+        {
+            placeColliderOnRoot = EditorGUILayout.Toggle("Place Collider on Root", placeColliderOnRoot);
+        }
 
         EditorGUILayout.Space();
         if (GUILayout.Button("Select Save Folder"))
@@ -104,14 +109,28 @@ public class LODGroupPrefabCreator : EditorWindow
             GameObject lodObj = Instantiate(selectedMeshes[i], lodRoot.transform);
             lodObj.name = $"LOD {i + 1}";
 
-            // Add a MeshCollider to LOD0 if requested
-            if (i == 0 && addColliderToLOD0)
+            if (i == 0)
             {
-                MeshCollider collider = lodObj.AddComponent<MeshCollider>();
                 MeshFilter meshFilter = lodObj.GetComponent<MeshFilter>();
-                if (meshFilter != null)
+
+                // Option to add a MeshCollider to LOD0 itself
+                if (addColliderToLOD0 && !placeColliderOnRoot)
                 {
-                    collider.sharedMesh = meshFilter.sharedMesh;
+                    MeshCollider collider = lodObj.AddComponent<MeshCollider>();
+                    if (meshFilter != null)
+                    {
+                        collider.sharedMesh = meshFilter.sharedMesh;
+                    }
+                }
+
+                // Option to add the collider to the root object instead of LOD0
+                if (addColliderToLOD0 && placeColliderOnRoot)
+                {
+                    MeshCollider collider = lodRoot.AddComponent<MeshCollider>();
+                    if (meshFilter != null)
+                    {
+                        collider.sharedMesh = meshFilter.sharedMesh;
+                    }
                 }
             }
 
