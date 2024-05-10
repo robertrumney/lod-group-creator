@@ -9,6 +9,7 @@ public class LODGroupPrefabCreator : EditorWindow
     private string saveFolderPath = "Assets";
     private bool addColliderToLOD0 = false;
     private bool placeColliderOnRoot = false;
+    private Material[] assignedMaterials = new Material[0];
 
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
@@ -64,6 +65,19 @@ public class LODGroupPrefabCreator : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Assign Materials:");
+        int materialCount = EditorGUILayout.IntField("Number of Materials", assignedMaterials.Length);
+        if (materialCount != assignedMaterials.Length)
+        {
+            System.Array.Resize(ref assignedMaterials, materialCount);
+        }
+
+        for (int i = 0; i < assignedMaterials.Length; i++)
+        {
+            assignedMaterials[i] = (Material)EditorGUILayout.ObjectField($"Material {i + 1}", assignedMaterials[i], typeof(Material), false);
+        }
+
+        EditorGUILayout.Space();
         if (GUILayout.Button("Select Save Folder"))
         {
             string selectedPath = EditorUtility.OpenFolderPanel("Select Prefab Save Folder", saveFolderPath, "");
@@ -109,11 +123,11 @@ public class LODGroupPrefabCreator : EditorWindow
             GameObject lodObj = Instantiate(selectedMeshes[i], lodRoot.transform);
             lodObj.name = $"LOD {i + 1}";
 
+            // Add a MeshCollider to LOD0 or root if requested
             if (i == 0)
             {
                 MeshFilter meshFilter = lodObj.GetComponent<MeshFilter>();
 
-                // Option to add a MeshCollider to LOD0 itself
                 if (addColliderToLOD0 && !placeColliderOnRoot)
                 {
                     MeshCollider collider = lodObj.AddComponent<MeshCollider>();
@@ -123,7 +137,6 @@ public class LODGroupPrefabCreator : EditorWindow
                     }
                 }
 
-                // Option to add the collider to the root object instead of LOD0
                 if (addColliderToLOD0 && placeColliderOnRoot)
                 {
                     MeshCollider collider = lodRoot.AddComponent<MeshCollider>();
@@ -134,7 +147,13 @@ public class LODGroupPrefabCreator : EditorWindow
                 }
             }
 
+            // Apply the same materials to all meshes
             Renderer[] renderers = lodObj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                renderer.sharedMaterials = assignedMaterials.Length > 0 ? assignedMaterials : renderer.sharedMaterials;
+            }
+
             lods[i] = new LOD(lodThresholds[i], renderers);
         }
 
