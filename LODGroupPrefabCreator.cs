@@ -72,10 +72,14 @@ public class LODGroupPrefabCreator : EditorWindow
         if (newSelectedMeshes != selectedMeshes)
         {
             selectedMeshes = newSelectedMeshes;
-            lodThresholds = new float[selectedMeshes.Length];  // Initialize thresholds array based on selection count
+            // Initialize thresholds array based on selection count
+
+            lodThresholds = new float[selectedMeshes.Length];  
+
             for (int i = 0; i < lodThresholds.Length; i++)
             {
-                lodThresholds[i] = 1f - (i / (float)lodThresholds.Length);  // Default decreasing thresholds
+                // Default decreasing thresholds
+                lodThresholds[i] = 1f - (i / (float)lodThresholds.Length);  
             }
         }
 
@@ -93,13 +97,15 @@ public class LODGroupPrefabCreator : EditorWindow
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("LOD Settings:");
+
         for (int i = 0; i < lodThresholds.Length; i++)
         {
-            lodThresholds[i] = EditorGUILayout.Slider($"LOD {i + 1} Threshold", lodThresholds[i], 0f, 1f);
+            lodThresholds[i] = EditorGUILayout.Slider($"LOD {i} Threshold", lodThresholds[i], 0f, 1f);
         }
 
         EditorGUILayout.Space();
         addColliderToLOD0 = EditorGUILayout.Toggle("Add Collider to LOD0", addColliderToLOD0);
+
         if (addColliderToLOD0)
         {
             placeColliderOnRoot = EditorGUILayout.Toggle("Place Collider on Root", placeColliderOnRoot);
@@ -108,6 +114,7 @@ public class LODGroupPrefabCreator : EditorWindow
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Assign Materials:");
         int materialCount = EditorGUILayout.IntField("Number of Materials", assignedMaterials.Length);
+
         if (materialCount != assignedMaterials.Length)
         {
             System.Array.Resize(ref assignedMaterials, materialCount);
@@ -119,6 +126,7 @@ public class LODGroupPrefabCreator : EditorWindow
         }
 
         EditorGUILayout.Space();
+
         if (GUILayout.Button("Select Save Folder"))
         {
             string selectedPath = EditorUtility.OpenFolderPanel("Select Prefab Save Folder", saveFolderPath, "");
