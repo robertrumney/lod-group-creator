@@ -11,11 +11,52 @@ public class LODGroupPrefabCreator : EditorWindow
     private bool placeColliderOnRoot = false;
     private Material[] assignedMaterials = new Material[0];
 
+    private const string PrefabNameKey = "LODGroupPrefabCreator_PrefabName";
+    private const string SaveFolderPathKey = "LODGroupPrefabCreator_SaveFolderPath";
+    private const string AddColliderToLOD0Key = "LODGroupPrefabCreator_AddColliderToLOD0";
+    private const string PlaceColliderOnRootKey = "LODGroupPrefabCreator_PlaceColliderOnRoot";
+    private const string AssignedMaterialCountKey = "LODGroupPrefabCreator_AssignedMaterialCount";
+
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
     private static void ShowWindow()
     {
         GetWindow<LODGroupPrefabCreator>("LOD Group Prefab Creator");
+    }
+
+    // Load previous settings
+    private void OnEnable()
+    {
+        prefabName = EditorPrefs.GetString(PrefabNameKey, "NewLODPrefab");
+        saveFolderPath = EditorPrefs.GetString(SaveFolderPathKey, "Assets");
+        addColliderToLOD0 = EditorPrefs.GetBool(AddColliderToLOD0Key, false);
+        placeColliderOnRoot = EditorPrefs.GetBool(PlaceColliderOnRootKey, false);
+
+        int materialCount = EditorPrefs.GetInt(AssignedMaterialCountKey, 0);
+        assignedMaterials = new Material[materialCount];
+        for (int i = 0; i < materialCount; i++)
+        {
+            string materialKey = $"LODGroupPrefabCreator_AssignedMaterial_{i}";
+            string materialPath = EditorPrefs.GetString(materialKey, string.Empty);
+            assignedMaterials[i] = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        }
+    }
+
+    // Save settings
+    private void OnDisable()
+    {
+        EditorPrefs.SetString(PrefabNameKey, prefabName);
+        EditorPrefs.SetString(SaveFolderPathKey, saveFolderPath);
+        EditorPrefs.SetBool(AddColliderToLOD0Key, addColliderToLOD0);
+        EditorPrefs.SetBool(PlaceColliderOnRootKey, placeColliderOnRoot);
+        EditorPrefs.SetInt(AssignedMaterialCountKey, assignedMaterials.Length);
+
+        for (int i = 0; i < assignedMaterials.Length; i++)
+        {
+            string materialKey = $"LODGroupPrefabCreator_AssignedMaterial_{i}";
+            string materialPath = assignedMaterials[i] != null ? AssetDatabase.GetAssetPath(assignedMaterials[i]) : string.Empty;
+            EditorPrefs.SetString(materialKey, materialPath);
+        }
     }
 
     // Draw the window's content
