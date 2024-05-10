@@ -6,6 +6,8 @@ public class LODGroupPrefabCreator : EditorWindow
     private GameObject[] selectedMeshes;
     private string prefabName = "NewLODPrefab";
     private float[] lodThresholds;
+    private string saveFolderPath = "Assets";
+    private bool addColliderToLOD0 = false;
 
     // Add menu item to show the window
     [MenuItem("Tools/LOD Group Prefab Creator")]
@@ -53,6 +55,29 @@ public class LODGroupPrefabCreator : EditorWindow
             lodThresholds[i] = EditorGUILayout.Slider($"LOD {i + 1} Threshold", lodThresholds[i], 0f, 1f);
         }
 
+        EditorGUILayout.Space();
+        addColliderToLOD0 = EditorGUILayout.Toggle("Add Collider to LOD0", addColliderToLOD0);
+
+        EditorGUILayout.Space();
+        if (GUILayout.Button("Select Save Folder"))
+        {
+            string selectedPath = EditorUtility.OpenFolderPanel("Select Prefab Save Folder", saveFolderPath, "");
+            if (!string.IsNullOrEmpty(selectedPath) && selectedPath.StartsWith(Application.dataPath))
+            {
+                saveFolderPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
+            }
+            else if (string.IsNullOrEmpty(selectedPath))
+            {
+                Debug.LogWarning("Save folder selection was canceled.");
+            }
+            else
+            {
+                Debug.LogError("Invalid save path selected. Please choose a folder within the project.");
+            }
+        }
+
+        EditorGUILayout.LabelField("Save Folder: ", saveFolderPath);
+
         if (GUILayout.Button("Create LOD Prefab"))
         {
             CreateLODPrefab();
@@ -79,6 +104,17 @@ public class LODGroupPrefabCreator : EditorWindow
             GameObject lodObj = Instantiate(selectedMeshes[i], lodRoot.transform);
             lodObj.name = $"LOD {i + 1}";
 
+            // Add a MeshCollider to LOD0 if requested
+            if (i == 0 && addColliderToLOD0)
+            {
+                MeshCollider collider = lodObj.AddComponent<MeshCollider>();
+                MeshFilter meshFilter = lodObj.GetComponent<MeshFilter>();
+                if (meshFilter != null)
+                {
+                    collider.sharedMesh = meshFilter.sharedMesh;
+                }
+            }
+
             Renderer[] renderers = lodObj.GetComponentsInChildren<Renderer>();
             lods[i] = new LOD(lodThresholds[i], renderers);
         }
@@ -86,8 +122,15 @@ public class LODGroupPrefabCreator : EditorWindow
         lodGroup.SetLODs(lods);
         lodGroup.RecalculateBounds();
 
+        // Ensure the save folder path is set
+        if (string.IsNullOrEmpty(saveFolderPath))
+        {
+            Debug.LogError("Invalid save path. Please select a valid save folder.");
+            return;
+        }
+
         // Save as a prefab
-        string path = $"Assets/{prefabName}.prefab";
+        string path = $"{saveFolderPath}/{prefabName}.prefab";
         PrefabUtility.SaveAsPrefabAsset(lodRoot, path);
         DestroyImmediate(lodRoot);
 
